@@ -7,10 +7,9 @@ using VRage.Game.Entity;
 
 namespace GridRenameFix
 {
-    [HarmonyPatch]
+    [HarmonyPatch("Sandbox.Game.Gui.MyTerminalInfoController", "UpdateBeforeDraw")]
     internal static class MyTerminalInfoControllerPatch
     {
-        [HarmonyPatch("Sandbox.Game.Gui.MyTerminalInfoController", "UpdateBeforeDraw")]
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             var label = generator.DefineLabel();
@@ -21,9 +20,12 @@ namespace GridRenameFix
 
             list[index + 4].labels.Add(label);
 
-            list.Insert(index, new CodeInstruction(OpCodes.Brtrue, label));
+
+            list.Insert(index, new CodeInstruction(OpCodes.Ldloc_1)); //Grid name ControlTextbox
+            index++;
             list.Insert(index, CodeInstruction.Call(typeof(MyGuiControlTextbox), "get_HasFocus"));
-            list.Insert(index, new CodeInstruction(OpCodes.Ldloc_1));
+            index++;
+            list.Insert(index, new CodeInstruction(OpCodes.Brtrue, label));
 
             return list;
         }
